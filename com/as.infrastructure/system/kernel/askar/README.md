@@ -5,7 +5,7 @@
 
 I have designed [GaInOS](https://github.com/parai/GaInOS) and [GaInOS-TK](https://github.com/parai/gainos-tk) since 2012, but all the development has been stopt for a long time till now, somehow it's a regret to me but I think I have no chooice as I feel a pain that I have too much to learn and I think that the design is not good.
 
-And now as I have read a lot of RTOS such as ITRON/ucos/freertos/freeosek/trampoline/toppers/rtthtrad/..., okay really many, so I want to restart the design of a kind of RTOS for automotive MCU.
+And now as I have read a lot of RTOS such as ITRON/ucos/freertos/freeosek/trampoline/toppers/rt-thread/..., okay really many, so I want to restart the design of a kind of RTOS for automotive MCU.
 
 * BUT NOTE THAT I WILL BORROW IDEAs FROM OTHERS.
 
