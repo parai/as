@@ -38,7 +38,7 @@
 #elif defined(USE_LWIP)
 #include "lwip/debug.h"
 #include "lwip/stats.h"
-#include "ipv4/lwip/inet.h"
+//#include "lwip/inet.h"
 #include "lwip_handler.h"
 #include "lwip/tcp.h"
 #include "lwip/sockets.h"
