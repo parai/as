@@ -17,15 +17,18 @@
 #define _PORT_CFG_H_
 /* ============================ [ INCLUDES  ] ====================================================== */
 /* ============================ [ MACROS    ] ====================================================== */
-#define PORT_OBE_ENABLE (1<<6)
-#define PORT_IBE_ENABLE (1<<7)
 /* ============================ [ TYPES     ] ====================================================== */
 typedef struct
 {
+	uint8 pinId;
+	uint8 level; /* default output level for GPIO */
+	uint16 regV;
+} Port_PadConfigType;
+
+typedef struct
+{
 	uint16_t padCnt;
-	const uint16_t *padConfig;
-	uint16_t outCnt;
-	const uint16_t *outConfig;
+	const Port_PadConfigType * padConfig;
 } Port_ConfigType;
 
 /* ============================ [ DECLARES  ] ====================================================== */

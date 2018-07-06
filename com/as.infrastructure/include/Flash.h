@@ -70,8 +70,9 @@
 #else
 #define FLASH_ERASE_SIZE  512
 #endif
+#ifndef FLASH_IS_ERASE_ADDRESS_ALIGNED
 #define FLASH_IS_ERASE_ADDRESS_ALIGNED(a)  ( 0 == ((FLASH_ERASE_SIZE-1)&(a)) )
-
+#endif
 /* must be n times of 4 */
 #ifndef FLASH_WRITE_SIZE
 #define FLASH_WRITE_SIZE  4

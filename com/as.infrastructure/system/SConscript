@@ -30,8 +30,10 @@ objs += SConscript('net/SConscript')
 objs += SConscript('fs/SConscript')
 
 if('SHELL' in MODULES):
-    objs += Glob('shell/*.c')
-    objs += Glob('shell/*.xml')
+    objs += Glob('shell/shell.c')
+    objs += Glob('shell/shell.xml')
+    if('FLASH_CMD' in MODULES):
+        objs += Glob('shell/FlashCmd.c')
 
 if('CPLUSPLUS' in MODULES):
     objs += Glob('cplusplus/*.cpp')

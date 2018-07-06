@@ -149,7 +149,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Os.h"
-//#define USE_LDEBUG_PRINTF
 #include "asdebug.h"
 
 #ifndef ISR_INSTALL_ISR2
@@ -159,8 +158,13 @@
 #endif
 /* ----------------------------[private define]------------------------------*/
 
+#define AS_LOG_CAN 1
 #define MAX_NUM_OF_MAILBOXES    64
+#ifdef USE_SHELL
+#define USE_CAN_STATISTICS      STD_ON
+#else
 #define USE_CAN_STATISTICS      STD_OFF
+#endif
 
 // Message box status defines
 #define MB_TX_ONCE              0xc
@@ -387,15 +391,14 @@ static void Can_Err(int unit)
 
     /* Clear bits 16-23 by read */
     esr = canHw->ESR.R;
+    ASLOG(CAN, "CAN%d esr = %X\n", unit, esr);
     if( esr & ESR_ERRINT )
     {
-#if 0
 		if (GET_CALLBACKS()->Arc_Error != NULL) {
 			GET_CALLBACKS()->Arc_Error(unit, err);
 		}
 
 		Can_SetControllerMode(unit, CAN_T_STOP); // CANIF272 Same handling as for busoff
-#endif
 		// Clear ERRINT
 		canHw->ESR.R = ESR_ERRINT;
     }
@@ -510,6 +513,7 @@ static void Can_BusOff(int unit)
 #endif
 
     if (canHw->ESR.B.BOFFINT) {
+        ASLOG(CAN,"CAN%d bus off\n", unit);
 #if (USE_CAN_STATISTICS == STD_ON)
         canUnit->stats.boffCnt++;
 #endif
@@ -645,8 +649,6 @@ static void Can_Isr_Rx(Can_UnitType *uPtr)
                 id = canHw->BUF[0].ID.B.STD_ID;
             }
 
-            LDEBUG_PRINTF("FIFO_ID=%x  ",(unsigned int)id);
-
             /* Must now do a manual match to find the right CanHardwareObject
              * to pass to CanIf. We know that the FIFO objects are sorted first.
              */
@@ -694,9 +696,6 @@ static void Can_Isr_Rx(Can_UnitType *uPtr)
                 id = canHw->BUF[mbNr].ID.B.STD_ID;
             }
 
-            LDEBUG_PRINTF("ID=%x  ",(unsigned int)id);
-
-
 #if defined(USE_DET)
             if( canHw->BUF[mbNr].CS.B.CODE == MB_RX_OVERRUN ) {
                 /* We have overwritten one frame */
@@ -739,62 +738,6 @@ static void Can_Isr(int controller )
 
 //-------------------------------------------------------------------
 
-
-static void Can_BuildMaps(Can_UnitType *uPtr)
-{
-	(void)uPtr;
-#if 0
-    uint8_t mbNr = 8;
-    uint8_t fifoNr = 0;
-
-    const Can_HardwareObjectType *hohPtr = uPtr->cfgCtrlPtr->Can_Arc_Hoh;
-
-    printf("Found %d HOHs\n", uPtr->cfgCtrlPtr->Can_Arc_HohCnt);
-
-    for (int i = 0; i < uPtr->cfgCtrlPtr->Can_Arc_HohCnt; i++, hohPtr++) {
-        if (hohPtr->CanObjectType == CAN_OBJECT_TYPE_RECEIVE) {
-            /* First 8 boxes are FIFO */
-            if (hohPtr->Can_Arc_Flags & CAN_HOH_FIFO_MASK) {
-                uPtr->mbToHrh[fifoNr++] = hohPtr->CanObjectId;
-                uPtr->Can_Arc_RxMbMask |= (1<<5);
-            } else {
-                uint64_t mask = (-1ULL);
-                uPtr->mbToHrh[mbNr] = hohPtr->CanObjectId;
-
-                mask >>= (mbNr);
-                mask <<= (mbNr);
-                mask <<= 64 - (mbNr + hohPtr->ArcCanNumMailboxes);
-                mask >>= 64 - (mbNr + hohPtr->ArcCanNumMailboxes);
-                uPtr->Can_Arc_RxMbMask |= mask;
-
-                mbNr += hohPtr->ArcCanNumMailboxes;
-            }
-            printf("mbNr=%d fifoNr=%d\n", mbNr, fifoNr);
-
-        } else {
-            uint64_t mask = (-1ULL);
-
-            /* Hth to HOH
-             * i = index into the HOH list for this controller */
-            Can_HthToHohMap[ hohPtr->CanObjectId ] = i;
-            Can_HthToUnitIdMap[ hohPtr->CanObjectId ] = uPtr->controllerId;
-            /* HOH to Mailbox */
-            for( int j=0;j < hohPtr->ArcCanNumMailboxes; j++ ) {
-                uPtr->mbToHrh[mbNr+j] = hohPtr->CanObjectId;
-            }
-
-            mask >>= (mbNr);
-            mask <<= (mbNr);
-            mask <<= 64 - (mbNr + hohPtr->ArcCanNumMailboxes);
-            mask >>= 64 - (mbNr + hohPtr->ArcCanNumMailboxes);
-            uPtr->Can_Arc_TxMbMask |= mask;
-            mbNr += hohPtr->ArcCanNumMailboxes;
-        }
-    }
-    uPtr->mbMax = mbNr;
-#endif
-}
-
 // This initiates ALL can controllers
 void Can_Init(const Can_ConfigType *config)
 {
@@ -828,8 +771,6 @@ void Can_Init(const Can_ConfigType *config)
 
         unitPtr->Can_Arc_RxMbMask = cfgCtrlPtr->Can_Arc_RxMailBoxMask;
         unitPtr->Can_Arc_TxMbMask = cfgCtrlPtr->Can_Arc_TxMailBoxMask;
-
-        Can_BuildMaps(unitPtr);
 
         switch (cfgCtrlPtr->CanControllerId) {
 #if defined(CFG_MPC560X)
@@ -1257,6 +1198,7 @@ Can_ReturnType Can_SetControllerMode(uint8 controller,
 
     switch (transition) {
     case CAN_T_START:
+        ASLOG(CAN,"start CAN%d\n", controller);
         canHw->MCR.B.HALT = 0;
         canUnit->state = CANIF_CS_STARTED;
         Irq_Save(state);
@@ -1272,6 +1214,7 @@ Can_ReturnType Can_SetControllerMode(uint8 controller,
         // Should be reported to DEM but DET is the next best
         VALIDATE(canUnit->state == CANIF_CS_STOPPED, 0x3, CAN_E_TRANSITION);
     case CAN_T_STOP:
+        ASLOG(CAN,"stop CAN%d\n", controller);
         // Stop
         canHw->MCR.B.HALT = 1;
         canUnit->state = CANIF_CS_STOPPED;
@@ -1645,6 +1588,32 @@ void Can_Arc_GetStatistics(uint8 controller, Can_Arc_StatisticsType *stats)
 	{
 		Can_UnitType *canUnit = CTRL_TO_UNIT_PTR(controller);
 		*stats = canUnit->stats;
+	}
+}
+#endif
+
+#ifdef USE_SHELL
+#include "shell.h"
+void statCan(void)
+{
+	Can_UnitType *uPtr;
+	if(Can_Global.initRun == CAN_READY)
+	{
+		for(int i=0;i<CAN_ARC_CTRL_CONFIG_CNT; i++ ) {
+			uPtr = &CanUnit[i];
+			SHELL_printf("CAN%d state is %d\n"
+					"  txSuccessCnt=%d, rxSuccessCnt=%d,\n"
+					"  txErrorCnt=%d, rxErrorCnt=%d,\n"
+					"  busOffCnt=%d, fifoOverflow=%d, fifoWarning=%d\n",
+					i, uPtr->state,
+					uPtr->stats.txSuccessCnt,
+					uPtr->stats.rxSuccessCnt,
+					uPtr->stats.txErrorCnt,
+					uPtr->stats.rxErrorCnt,
+					uPtr->stats.boffCnt,
+					uPtr->stats.fifoOverflow,
+					uPtr->stats.fifoWarning);
+		}
 	}
 }
 #endif

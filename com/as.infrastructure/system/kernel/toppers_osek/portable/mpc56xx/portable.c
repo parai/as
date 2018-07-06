@@ -331,17 +331,17 @@ nofralloc
 __asm void EnterISR(void)
 {
 nofralloc
+	lis r11, runtsk@h
+	lbz r0, runtsk@l(r11)
+	cmpwi r0, 0xFF
+	beq l_nosave
+
 	lis r11, knl_taskindp@h
 	lwz r12, knl_taskindp@l(r11)
 	addi r12, r12, 1
 	stw r12, knl_taskindp@l(r11)
 	cmpwi r12, 1
 	bne l_nosave
-
-	lis r11, runtsk@h
-	lbz r0, runtsk@l(r11)
-	cmpwi r0, 0xFF
-	beq l_nosave
 
 	se_slwi r0, 2
 	lis r8, tcxb_sp@h
@@ -379,6 +379,11 @@ nofralloc
 	lis r11, callevel@h
 	stb r12, callevel@l(r11)
 
+	lis r11, runtsk@h
+	lbz r0, runtsk@l(r11)
+	cmpwi r0, 0xFF
+	bne l_nodispatch
+
 	lis r11, knl_taskindp@h
 	lwz r10, knl_taskindp@l(r11)
 	subi r10, r10, 1
@@ -387,12 +392,7 @@ nofralloc
 	bne l_nodispatch
 
 	cmpwi r12, 1   /* TCL_TASK */
-	bne l_nodispatch
-
-	lis r11, runtsk@h
-	lbz r0, runtsk@l(r11)
-	cmpwi r0, 0xFF
-	bne l_nodispatch
+	bne l_nopreempt
 
 	lis r11, schedtsk@h
 	lbz r12, schedtsk@l(r11)

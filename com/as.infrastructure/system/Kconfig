@@ -52,6 +52,16 @@ config SHELL
 	default y
 	depends on !RTTHREAD
 
+config FLASH_CMD
+	bool "Flash erase/write/read commad on shell"
+	default n
+	depends on FLASH && SHELL
+
+config MEM_CMD
+	bool "memory write/read commad on shell"
+	default n
+	depends on SHELL
+
 config CPLUSPLUS
 	bool "C++ support"
 	default n

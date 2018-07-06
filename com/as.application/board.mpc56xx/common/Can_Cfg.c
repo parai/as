@@ -56,10 +56,10 @@ const Can_ControllerConfigType  Can_ControllerCfgData[]=
 						 /* CAN_CTRL_LOOPBACK | Loopback for debug */
 						 CAN_CTRL_ERROR_PROCESSING_INTERRUPT,
 		.CanControllerBaudRate=1000, /* Kbps */
-		.CanControllerPropSeg=0,/* (SJW) */
-		.CanControllerSeg1=13,
-		.CanControllerSeg2=2,
-		.CanControllerRJW = 0,
+		.CanControllerPropSeg=6,
+		.CanControllerSeg1=3,
+		.CanControllerSeg2=3,
+		.CanControllerRJW = 3,
 		.CanCpuClockRef = 0,
 		.Can_Arc_RxMailBoxMask = 0x01, /* MSG BOX 0 used as RX*/
 		.Can_Arc_TxMailBoxMask = 0x02, /* MSG BOX 1 used as TX*/

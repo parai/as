@@ -17,5 +17,9 @@ config PORT
 	bool "MCAL PORT driver"
 	default y
 
+config FLASH
+	bool "HIS FLASH driver"
+	default n
+
 endmenu
 endif

@@ -22,6 +22,9 @@ if('MCU' in MODULES):
 if('PORT' in MODULES):
     objs += Glob('mcal/Port.c')
 
+if('FLASH' in MODULES):
+    objs += Glob('mcal/Flash.c')
+
 if(os.getenv('USE_CWCC') == 'no'):
     SelectCompilerPPCEabi()
 else:

@@ -86,43 +86,19 @@ static Std_VersionInfoType _Port_VersionInfo =
 
 void Port_Init(const Port_ConfigType *configType)
 {
-  VALIDATE_PARAM_CONFIG(configType, PORT_INIT_ID);
+	uint32 i;
+	VALIDATE_PARAM_CONFIG(configType, PORT_INIT_ID);
 
-#if defined(CFG_MPC560X)
-	vuint16_t i = 0;
-	vuint16_t j = 0;
-
-	while(i < (configType->padCnt/sizeof(uint16_t)))
-    {
-		SIU.PCR[i].R = configType->padConfig[i];
-    	++i;
-
-#if defined(CFG_MPC560XB)
-    	if(32 == i || 33 == i) i=34;
-    	if(121 == i || 122 == i) i=123;
-#elif defined(CFG_MPC5606S)
-    	// Out of reset pins PH[0:3](PCR99~PCR102) are available as JTAG pins(TCK,TDI,TDO and TMS respectively)
-    	if(99 == i || 100 == i || 101 == i || 102 == i) i=103;
-#endif
-	}
-
-	while(j < configType->outCnt)
+	for(i=0; i<configType->padCnt; i++)
 	{
-    	SIU.GPDO[j].B.PDO = configType->outConfig[j];
-    	++j;
+		if( 0x200 == (configType->padConfig[i].regV&0xE00) ) {
+			/* function is GPIO output */
+			SIU.GPDO[configType->padConfig[i].pinId].R = configType->padConfig[i].level;
+		}
+		SIU.PCR[configType->padConfig[i].pinId].R = configType->padConfig[i].regV;
+
+
 	}
-
-#else
-	// Pointers to the register memory areas
-	vuint16_t * padConfig = &(SIU.PCR[0].R);
-	vuint8_t * outConfig = &(SIU.GPDO[0].R);
-
-	//  vuint8_t * inConfig = &(SIU.GPDI[0].R); // Read only
-	// Copy config to register areas
-	memcpy((void *)outConfig, configType->outConfig, configType->outCnt);
-    memcpy((void *)padConfig, configType->padConfig, configType->padCnt);
-	//memcpy((void *)inConfig, configType->inConfig, configType->inCnt);
-#endif
 
 	_portState = PORT_INITIALIZED;
 	_configPtr = configType;
@@ -155,45 +131,17 @@ void Port_SetPinDirection( Port_PinType pin, Port_PinDirectionType direction )
 
 void Port_RefreshPortDirection( void )
 {
-  VALIDATE_STATE_INIT(PORT_REFRESH_PORT_DIRECTION_ID);
-  vuint16_t * pcrPtr = &(SIU.PCR[0].R);
-  const uint16_t * padCfgPtr = _configPtr->padConfig;
-  uint16_t bitMask = PORT_IBE_ENABLE|PORT_OBE_ENABLE;
-  int i,j=0;
-  unsigned long state;
-  for (i=0; i < sizeof(SIU.PCR)/sizeof(SIU.PCR[0]); i++)
-  {
-	Irq_Save(state); // Lock interrupts
-    *pcrPtr = (*pcrPtr & ~bitMask) | (*padCfgPtr & bitMask);
-    Irq_Restore(state); // Restore interrupts
-    pcrPtr++;
-    padCfgPtr++;
-#if defined(CFG_MPC560XB)
-    if(32 == i)
-    {
-    	i=34;
-    	pcrPtr = pcrPtr+2;
-    	padCfgPtr = padCfgPtr+2;
-    }
-    if(121 == i)
-    {
-    	i=123;
-    	pcrPtr = pcrPtr+2;
-    	padCfgPtr = padCfgPtr+2;
-    }
-#elif defined(CFG_MPC5606S)
-    if(98 == i)
-    {
-    	i=103;
-    	pcrPtr = pcrPtr+5;
-    	padCfgPtr = padCfgPtr+5;
-    }
-#endif
+	uint32 i;
+	VALIDATE_STATE_INIT(PORT_REFRESH_PORT_DIRECTION_ID);
 
-    j++;
-  }
+	for(i=0; i<_configPtr->padCnt; i++)
+	{
+		SIU.PCR[_configPtr->padConfig[i].pinId].R = \
+				(SIU.PCR[_configPtr->padConfig[i].pinId].R & (~0x300)) |
+				(_configPtr->padConfig[i].regV & 0x300);
+	}
 
-  return;
+	return;
 }
 
 #if PORT_VERSION_INFO_API == STD_ON

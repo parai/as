@@ -23,6 +23,9 @@
 #if defined(USE_DEM)
 #include "Dem.h"
 #endif
+#if defined(USE_DIO)
+#include "Dio.h"
+#endif
 //#include "Cpu.h"
 //#include "Ramlog.h"
 #include "Os.h"
@@ -228,11 +231,58 @@ void TaskIdleHook(void)
 		SHELL_input(ch);
 	}
 #endif
+#if defined(USE_DIO)
+	Dio_WriteChannel(DIO_PIN_LED1, Dio_ReadChannel(DIO_PIN_KEY1));
+	Dio_WriteChannel(DIO_PIN_LED2, Dio_ReadChannel(DIO_PIN_KEY2));
+	Dio_WriteChannel(DIO_PIN_LED3, Dio_ReadChannel(DIO_PIN_KEY3));
+	Dio_WriteChannel(DIO_PIN_LED4, Dio_ReadChannel(DIO_PIN_KEY4));
+#endif
+}
+
+void initCAN_A (void) {
+  uint8_t   i;
+
+  CAN_A.MCR.R = 0x5000003F;       /* Put in Freeze Mode & enable all 64 message buffers */
+  CAN_A.CR.R = 0x04DB0006;        /* Configure for 8MHz OSC, 100KHz bit time */
+  for (i=0; i<64; i++) {
+    CAN_A.BUF[i].CS.B.CODE = 0;   /* Inactivate all message buffers */
+  }
+  CAN_A.BUF[0].CS.B.CODE = 8;     /* Message Buffer 0 set to TX INACTIVE */
+/* Use 1 pair of the next four lines of code for MPC551x or MPC555x */
+/*SIU.PCR[48].R = 0x062C;*/       /* MPC551x: Configure pad as CNTXA, open drain */
+/*SIU.PCR[49].R = 0x0500;*/       /* MPC551x: Configure pad as CNRXA */
+  SIU.PCR[83].R = 0x062C;         /* MPC555x: Configure pad as CNTXA, open drain */
+  SIU.PCR[84].R = 0x0500;         /* MPC555x: Configure pad as CNRXA */
+  CAN_A.MCR.R = 0x0000003F;       /* Negate FlexCAN A halt state for 64 MB */
+}
+
+void TransmitMsg (void) {
+
+                                   /* Assumption:  Message buffer CODE is INACTIVE */
+  const uint8_t TxData[] = {"Hello"};  /* Transmit string*/
+  CAN_A.BUF[0].CS.B.IDE = 0;           /* Use standard ID length */
+  CAN_A.BUF[0].ID.B.STD_ID = 555;      /* Transmit ID is 555 */
+  CAN_A.BUF[0].CS.B.RTR = 0;           /* Data frame, not remote Tx request frame */
+  CAN_A.BUF[0].CS.B.LENGTH = sizeof(TxData) -1 ; /* # bytes to transmit w/o null */
+  memcpy(&CAN_A.BUF[0].DATA, TxData, sizeof(TxData));      /* Data to be transmitted */
+  CAN_A.BUF[0].CS.B.SRR = 1;           /* Tx frame (not req'd for standard frame)*/
+  CAN_A.BUF[0].CS.B.CODE =0xC;         /* Activate msg. buf. to transmit data frame */
 }
 
 void Mcu_DistributePllClock( void )
 {
 	InitializeUART();
+#if 0
+	initCAN_A();
+	do {
+		char ch;
+		TransmitMsg();
+		printf("can message send, press 'e' to exit, any other key to continue\n");
+		ch = ReadUARTN();
+		if(ch == 'e') break;
+	} while(1);
+#endif
+
 #ifndef USE_SMALLOS
 	TickTimer_SetFreqHz(OS_TICKS_PER_SECOND);
 	EXCEP_InitExceptionHandlers();

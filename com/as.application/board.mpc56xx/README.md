@@ -18,3 +18,5 @@ To support other kind of chips, please take the MPC5634M_MLQB80 as an example an
 
 
 https://www.nxp.com/docs/en/reference-manual/MPC563XMRM.pdf
+
+The configuration file in directory "common" is for board TRK-MPC5634M REV B.
