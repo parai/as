@@ -28,6 +28,7 @@
 #include "lwip/inet.h"
 #include "lwip_handler.h"
 #include "ethernetif.h"
+#include "lwip/ip_addr.h"
 
 #include "Os.h"
 #include "mbox.h"
@@ -556,9 +557,9 @@ struct netif * LwIP_Init(void)
 {
 #ifdef USE_LWIP
 	uint8_t macaddress[6] = ETH_MAC_ADDR;
-	struct ip_addr ipaddr;
-	struct ip_addr netmask;
-	struct ip_addr gw;
+	ip_addr_t ipaddr;
+	ip_addr_t netmask;
+	ip_addr_t gw;
 
 	/* Configure ethernet */
 	Ethernet_Configuration();

@@ -1,9 +1,11 @@
 @echo off
 
 set ASPATH=%~dp0
-set tmp="%ASPATH%"
+:set tmp="%ASPATH%"
 set ASDISK=%tmp:~1,2%
 set MSYS2="C:\msys64"
+:compile lwext4
+set CMAKE_LEGACY_CYGWIN_WIN32=1
 
 %ASDISK%
 cd %ASPATH%

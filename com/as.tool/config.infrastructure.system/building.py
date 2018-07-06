@@ -761,9 +761,9 @@ def SelectCompilerArmNoneEabi():
             RunCommand('cd %s/release/download && curl -O %s && mkdir -p %s && cd %s && unzip ../%s.zip'%(ASROOT,gccsrc,gccarm,gccarm,gccarm))
         Env.Append(LIBPATH=['%s/lib/gcc/arm-none-eabi/5.4.1'%(cpl)])
         Env.Append(LIBPATH=['%s/arm-none-eabi/lib'%(cpl)])
-        Env['CC']='%s/bin/arm-none-eabi-gcc -std=gnu99'%(cpl)
+        Env['CC']='%s/bin/arm-none-eabi-gcc --specs=nosys.specs -std=gnu99'%(cpl)
         Env['CXX']='%s/bin/arm-none-eabi-g++'%(cpl)
-        Env['AS']='%s/bin/arm-none-eabi-gcc -c'%(cpl)
+        Env['AS']='%s/bin/arm-none-eabi-gcc -c --specs=nosys.specs'%(cpl)
         Env['LINK']='%s/bin/arm-none-eabi-ld'%(cpl)
         Env['S19'] = '%s/bin/%s'%(cpl,Env['S19'])
     else:

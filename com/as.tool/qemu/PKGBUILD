@@ -34,10 +34,8 @@ noextract=(${_pkgfqn}.tar.xz)
 prepare() {
   asdir=${srcdir}/../../../..
   if ! [[ -d ${srcdir}/${_pkgfqn} ]] ; then
-
-    tar -xJf ${srcdir}/${_pkgfqn}.tar.xz -C ${srcdir} 2>/dev/null || true
-    tar -xJf ${srcdir}/${_pkgfqn}.tar.xz -C ${srcdir} --skip-old-files
-
+	xz -d ${srcdir}/${_pkgfqn}.tar.xz
+	tar -xvf ${srcdir}/${_pkgfqn}.tar -C ${srcdir} --skip-old-files
     head -n 11 ${asdir}/com/as.tool/qemu//hw/char/Makefile >> ${srcdir}/${_pkgfqn}/hw/char/Makefile.objs
     echo "LIBS += -lpyas /mingw64/lib/Packet.lib /mingw64/lib/wpcap.lib /mingw64/lib/PCANBasic.lib /mingw64/lib/ControlCAN.lib" >> ${srcdir}/${_pkgfqn}/hw/char/Makefile.objs
   fi
@@ -61,11 +59,11 @@ prepare() {
   fi
   
   if ! [[ -f /mingw64/lib/PCANBasic.lib ]] ; then
-    cp ${asdir}/release/download/pcan-basic/x64/VC_LIB/PCANBasic.lib /mingw64/lib -v
+    cp ${asdir}/release/download/pcan-basic/"PCAN-Basic API"/x64/VC_LIB/PCANBasic.lib /mingw64/lib -v
   fi
 
   if ! [[ -f /mingw64/lib/ControlCAN.lib ]] ; then
-    cp ${asdir}/release/download/CAN_lib/64bit/ControlCAN.lib /mingw64/lib -v
+    cp ${asdir}/release/download/ControlCAN/64/ControlCAN.lib /mingw64/lib -v
   fi
 
   cp ${asdir}/com/as.tool/qemu/hw/char/*.c ${srcdir}/${_pkgfqn}/hw/char -v
