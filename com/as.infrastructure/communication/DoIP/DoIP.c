@@ -11,7 +11,7 @@
  * LICENSE.GPL included in the packaging of this file or here
  * <http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt>
  *-------------------------------- Arctic Core -----------------------------*/
-#ifdef USE_DIOP
+#if defined(USE_DOIP) && ! defined (USE_SOAD)
 #include "SoAd.h"
 #include "SoAd_Internal.h"
 #include "PduR_SoAd.h"
