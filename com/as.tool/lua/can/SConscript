@@ -15,7 +15,7 @@ asenv.Append(CCFLAGS='-I%s/rs232'%(cwd))
 if(IsPlatformWindows()):
     peakcan = Package('https://www.peak-system.com/fileadmin/media/files/pcan-basic.zip')
     zlgcan_o = Package('http://www.zlg.cn/data/upload/software/Can/CAN_lib.rar')
-    zlgcan = str(Glob('%s/CAN*'%(zlgcan_o))[0])
+    zlgcan = str(Glob('%s/*'%(zlgcan_o))[0])
 
 if(IsPlatformWindows()):
     asenv.Append(CCFLAGS='-I%s/"PCAN-Basic API"/Include'%(peakcan))
@@ -23,15 +23,15 @@ if(IsPlatformWindows()):
     MKSymlink('%s/../../cancasexl.access/xlLoadlib.cpp'%(cwd),'%s/xlLoadlib.c'%(cwd))
     asenv.Append(CCFLAGS=['-DDYNAMIC_XLDRIVER_DLL', '-DPOINTER_32='])
     if(asenv['mingw64']):
-        asenv.Append(CCFLAGS='-I%s/ControlCAN/64'%(zlgcan))
+        asenv.Append(CCFLAGS='-I%s/ControlCANx64'%(zlgcan))
         
-        MKSymlink('%s/ControlCAN/64/ControlCAN.dll'%(zlgcan),
+        MKSymlink('%s/ControlCANx64/ControlCAN.dll'%(zlgcan),
                   '%s/release/%s/ControlCAN.dll'%(asenv['ASROOT'],asenv['RELEASE']))
         MKSymlink('%s/"PCAN-Basic API"/x64/PCANBasic.dll'%(peakcan),
                   '%s/release/%s/PCANBasic.dll'%(asenv['ASROOT'],asenv['RELEASE']))
     else:
-        asenv.Append(CCFLAGS='-I%s/ControlCAN/32'%(zlgcan))
-        MKSymlink('%s/ControlCAN/32/ControlCAN.dll'%(zlgcan),
+        asenv.Append(CCFLAGS='-I%s/ControlCANx32'%(zlgcan))
+        MKSymlink('%s/ControlCANx32/ControlCAN.dll'%(zlgcan),
                   '%s/release/%s/ControlCAN.dll'%(asenv['ASROOT'],asenv['RELEASE']))
         MKSymlink('%s/"PCAN-Basic API"/Win32/PCANBasic.dll'%(peakcan),
                   '%s/release/%s/PCANBasic.dll'%(asenv['ASROOT'],asenv['RELEASE']))
@@ -52,10 +52,10 @@ objs +=  Glob('rs232/*.c')
 if(IsPlatformWindows()):
     if(asenv['mingw64']):
         objs += Glob('%s/PCAN-Basic API/x64/VC_LIB/PCANBasic.lib'%(peakcan))
-        objs += Glob('%s/ControlCAN/64/ControlCAN.lib'%(zlgcan))
+        objs += Glob('%s/ControlCANx64/ControlCAN.lib'%(zlgcan))
     else:
         objs += Glob('%s/PCAN-Basic API/Win32/VC_LIB/PCANBasic.lib'%(peakcan))
-        objs += Glob('%s/ControlCAN/32/ControlCAN.lib'%(zlgcan))
+        objs += Glob('%s/ControlCANx32/ControlCAN.lib'%(zlgcan))
 src = '%s/socketwin_can_driver.c'%(cwd)
 tgt = '%s/../script/socketwin_can_driver.exe'%(cwd)
 cmd = 'gcc %s -D__SOCKET_WIN_CAN_DRIVER__ -I%s/com/as.infrastructure/include -o %s'%(src,asenv['ASROOT'],tgt)
