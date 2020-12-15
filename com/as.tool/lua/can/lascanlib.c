@@ -97,11 +97,11 @@ static const Can_DeviceOpsType* canOps [] =
 	#endif
 	#else
 	#ifdef USE_LUA_SOCKET_CAN
-	&can_socket_ops,
+	&can_socketwin_ops,
 	#endif
 	#endif
 	#ifdef USE_LUA_SOCKET_CAN
-	&can_socketwin_ops,
+	&can_socket_ops,
 	#endif
 	NULL
 };
